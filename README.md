@@ -1,130 +1,37 @@
-# alexa-tube
-**Unofficial Youtube Skill for Alexa**
-
-## Release 1.2.1
-
-This skill is a proof of concept for personal use that allows Alexa to search for youtube videos and play the audio element - NOTE doing so is against the youtube terms of service
-
-This skill will stream approximately 15-18 hours per month of youtube audio within the free tier of AWS.
-Each additonal 15-18 hours per month will cost approx $0.09
-
-The skill will **try** and stop you from going beyond the free limits unless you instruct it to do otherwise - but it is your responsibility to keep a check on your usage and AWS costs. 
-See the AWS Charges section for more details.
-
-Changes for this version:-
-
-1. Corrected minor bug in NowPlaying function
-2. Updated readme to add note about using service simulator
-3. Added handling of "Ask Youtube to STOP" rather than "Alexa Stop"
-
+# video-streaming-alexa-skill
+Skill for streaming video in alexa devices with screen (e.g: echo show)
 
 ## SKILL COMMANDS
 
-1. Request a particular video: "Alexa, ask youtube to play 'Charley bit my finger'"
-2. Request an auto generated playlist of 25 results: - "Alexa ask Youtube to play SOME David Bowie"
-3. Request a particular track from the playlist: "Alexa, ask Youtube to play Track 10"
+1. Request a particular video: "Alexa, ask Echotube Player to play 'Charley bit my finger'"
+2. Request an auto generated playlist of 25 results: - "Alexa ask Echotube Player to play"
+3. Request a particular track from the playlist: "Alexa, ask Echotube Player to play Track 10"
 4. Skip to the next/previous track:- "Alexa, next/ previous track"
 5. Pause:- "Alexa pause" or "Alexa stop"
 6. Resume playback:- "Alexa resume" 
-7. Find out what is playing by asking "Alexa ask Youtube what's playing" - this will also tell you your data usage
+7. Find out what is playing by asking "Alexa ask Echotube Player what's playing" - this will also tell you your data usage
 8. Turn Autoplay of the next video on/off:- "Alexa turn autoplay on/off" 
 8. Loop the current playlist:- "Alexa Loop On/Off"
 9. Shuffle mode On/Off:- "Alexa shuffle On/Off"
 10. Start the track currently playing fromt he beginning:- "Alexa Start Over"
-11. Get a list of these commands in the Alexa app: - "Alexa ask Youtube for help"
-12. Increase the data limit (this will allow the skill to incur data charges from AWS):- "Alexa, ask youtube to increase the data limit"
-13. Reset the data limit to default of 1000MB:- "Alexa, ask youtube to reset the data limit"
-
-Following a search request, the skill produces an Alexa App card which lists upto 25 results and shows the track that is currently playing. This card is not produced when the next track plays unless the "next" command is used or you ask what is playing
-
-The skill will filter out any tracks longer than 7 hours as there isn't sufficient space in lambda to process them.
+11. Get a list of these commands in the Alexa app: - "Alexa ask Echotube Player for help"
+12. Increase the data limit (this will allow the skill to incur data charges from AWS):- "Alexa, ask Echotube Player to increase the data limit"
+13. Reset the data limit to default of 1000MB:- "Alexa, ask Echotube Player to reset the data limit"
 
 ![alt text](screenshots/skill_card.jpeg)
 
-## AWS CHARGES
+## SETUP INSTRUCTIONS
 
-This skill has to transfer **a lot** of data around which Amazon charges for. The first 1 Gigabyte of data transfer per month is free after which Amazon will charge $0.09 per GB.
-The skill will  **try** to prevent you from going over 1000MB in a calender month (this is not a full 1GB but leaves some additonal headroom for for other skills) and will stop playing any further audio unless you specifcally ask the skill to increase the data limit by saying:-
+## Get a Dropbox Token
 
-"Alexa, ask youtube to increase the data limit"
-
-You will then need to give the authorisation code which is:-
-
-    ```
-    ZERO ZERO ZERO DESTRUCT ZERO
-    ```
-
-This will then add an additonal 1000MB to the data limit. You can repeat this process to increase the data limit by 1000MB increments.
-
-The Now Playing Card in the Alexa app will tell you the data that you have used to date for the current month along with an estimated cost in US dollars if you have exceed the free usage.
-
-
-** NOTE - The app can only track it's own data usage. If you run other skills on AWS then these will also contribute towards usage limits. You can cheack your usage at any time by visiting:- **
-
-https://console.aws.amazon.com/billing/home?#/
-
-
-The data limit can be reset to it's default at any time with the command:-
-
-"Alexa, ask youtube to reset the data limit"
-
-This will prevent any further charges if you are already over the default limit
-
-
-You can increase the default data limit and AWS cost rates by setting the following environment variables:-
-
-|Key           |Description            |Possible Values| Default Value (if variable is not set)|
-|--------------| ----------------------|---------------|----------------------------|
-|CHARGE_PER_GIG|This is the AWS EC2 charge per GB for the first 10 TB / month data transfer out beyond the global free tier|Cost in dollars per GB|0.090| 
-|MAX_DATA|The size of the data limit in bytes|size in bytes|1048576000|
-
-
-**IF PAYING AWS CHARGES IS NOT ACCEPTABLE TO YOU THEN PLEASE DO NOT INSTALL THIS SKILL**
-
-
-## TECHNICAL
-
-The mpeg4 aac DASH audio stream URL provided by the API is read using YTDL-core, rewrapped into a seekable MP4 file using FFMPEG and the resulting audio is temporarily cached into dropbox in order for Alexa to play the stream. 
-
-The skill creates a folder in your dropbox called youtube-skill, into which it writes 2 files, audio.mp4 which contains the audio to be played by Alexa and settings.json which holds the skills settings between sessions. 
-
-Each time a track plays, the skill overwrites audio.mp4 and creates a unique public URL which is sent to the Echo device. No other files are made public (infact the skill is setup to only be able to access files and folders that it has created).
-
-**NOTE - you might want to exclude the "youtube-skill" folder from your Selective Sync settings on any desktop machines to stop any annoying notifications popping up each time a song plays!**
-
-## COMMON ISSUES **PLEASE CHECK THESE BEFORE RAISING AN ISSUE**
-
-1. "Error: There was a problem with your request: Unknown slot type 'SEARCH' for slot 'search' " - You didn't hit the "ADD" button under Custom Slot Types.
-2. I keep getting an error when I go to create function in the Lambda page: Signature expired: 20170612T135832Z is now earlier than 20170612T142721Z (20170612T143221Z - 5 min.) - See the note on step 13 of the AWS Lambda Setup on how to fix this
-3. When I ask Alexa to open Youtube she says: "I got an error from the Dropbox API". You have probably copied over your Dropbox Token incorrectly - make sure you have no extra spaces
-4. When I ask Alexa to open Youtube she says: "I got an error from the Youtube API". You have probably copied over your Youtube API key incorrectly - make sure you have no extra spaces
-5. Sometimes I get no sound or some strange warbling sounds - The track is encoded in a way that isn't playable by Alexa - just skip this track.
-6. I keep get annoying popups from Dropbox on my desktop saying files have changes each time I use the skill - Exclude the "youtube-skill" folder from your Selective Sync settings in the dropbox app.
-
-
-
-## SETUP INSTRUCTIONS (TEXT)
-
-## Get a Youtube API Key and Dropbox Token
-
-1. Create a youtube api key using the instructions here:-
-https://elfsight.com/blog/2016/12/how-to-get-youtube-api-key-tutorial/
-
-Save it to a notepad file and do not share this with anyone else!!!
-
-2. Create a dropbox access token using the instructions here:-
-http://www.iperiusbackup.net/en/create-dropbox-app-get-authentication-token/
-
-Again, save it to a notepad file and do not share this with anyone else!!!
-
-
-**The rest of these instructions are modified from tartan_guru's Google Assistant skill (https://github.com/tartanguru/alexa-assistant)**
+1. Create a dropbox access token using the instructions here:-
+https://blogs.dropbox.com/developers/2014/05/generate-an-access-token-for-your-own-account/
 
 ## Download code from github
 
 1. Click on the green "Clone or download" button just under the yellow bar
 2. Click download ZIP
-3. Unzip the file (it will be called alexa-youtube-master.zip) to a known place on your hard-drive (suggest root of C: drive in Windows to avoid problems with long filenames)
+3. Unzip the file 
 
 ## AWS Lambda Setup
 
@@ -132,32 +39,22 @@ Again, save it to a notepad file and do not share this with anyone else!!!
 
 2.  Go to the drop down "Location" menu at the top right and ensure you select US-East (N. Virginia) if you are based in the US or EU(Ireland) if you are based in the UK or Germany. This is important as only these two regions support Alexa. NOTE: the choice of either US or EU is important as it will affect the results that you get. The EU node will provide answers in metric and will be much more UK focused, whilst the US node will be imperial and more US focused.
 
-![alt text](screenshots/lambda_region.jpg)
 
 1. Select Lambda from the AWS Services menu at the top left
 2. Click on the "Create a Lambda Function" or "Get Started Now" button.
 3. Select "Blank Function" - this will automatically take you to the "Configure triggers" page.
-
-![alt text](screenshots/blueprint.jpeg)
-
 4. Click the dotted box and select "Alexa Skills Kit" (NOTE - if you do not see Alexa Skill Kit as an option then you are in the wrong AWS region). 
-
-![alt text](screenshots/triggers.jpeg)
-
 5. Click Next 
-
-![alt text](screenshots/trigger_ASK.jpeg)
-
 5. Name the Lambda Function :-
 
     ```
-    youtube
+    alexaVideoPlayer
     ```
     
-5. Set the decription as :-
+5. Set a decription, e.g:-
 
     ```
-    Youtube
+    alexaVideoPlayer
     ```
     
 6. Select the default runtime which is currently "node.js 6.10".
@@ -165,12 +62,11 @@ Again, save it to a notepad file and do not share this with anyone else!!!
 
 ![alt text](screenshots/lambda_1.jpeg)
 
-7. Click on the "Upload" button. Go to the folder where you unzipped the files you downloaded from Github, select index.zip and click open. Do not upload the alexa-assistant-master.zip you downloaded from Github - only the index.zip contained within it.
-8. Enter the following into the Environment Variables Section (If you are pasting in the API Key and Toekn then make sure you have no extra spaces: -
+7. Click on the "Upload" button. Go to the folder where you unzipped the files you downloaded from Github, select index.zip and click open. 
+8. Enter the following into the Environment Variables Section (If you are pasting in the Token then make sure you have no extra spaces: -
 
 |Key           | Value|
 |--------------| -----|
-|API_KEY|(Put the Google API key in here)|
 |DROPBOX_TOKEN|(Put the Dropbox token in here)|
 
 ![alt text](screenshots/environment_variables.jpeg) 
@@ -191,7 +87,7 @@ Again, save it to a notepad file and do not share this with anyone else!!!
 
 ![alt text](screenshots/advanced_settings.jpeg)
 
-13. Click on the blue "Next" at the bottom of the page and review the settings then click "Create Function". This will upload the index.zip file to Lambda. This may take a number of minutes depending on your connection speed. **NOTE - If the creation process takes more than five minutes or produces an error similar to "Signature expired: 20170612T135832Z is now earlier than 20170612T142721Z (20170612T143221Z - 5 min.)" then this is due to having a slow internet upload speed.  You'll need to upload the zip file via S3 instead. Go here:- https://console.aws.amazon.com/s3/home. Create a bucket - call it whatever you want. You can then upload the index.zip to that S3 bucket. Once it's uploaded use the "Upload a file from S3" rather than the "Upload a zip " option in the lambda setup.Delete the zip file from S3 once you have finished with it to avoid S3 charges**
+13. Click on the blue "Next" at the bottom of the page and review the settings then click "Create Function". This will upload the index.zip file to Lambda.
 
 ![alt text](screenshots/review_function.jpeg)
 
@@ -219,13 +115,13 @@ Again, save it to a notepad file and do not share this with anyone else!!!
 6. Set the "Name" to 
 
     ```
-    Youtube Skill for Alexa
+    Video Player Skill for Alexa
     ```
     
 8. Set the "Invocation Name" to 
 
     ```
-    youtube
+    Echotube Player
     ```
 8. Set the "Audio Player" setting to "Yes"
 8. Leave the other settings in Global Fields set to "No'
@@ -395,6 +291,44 @@ Credit to https://github.com/rgraciano/echo-sonos/blob/master/echo/custom_slots/
 ![alt text](screenshots/endpoint.jpeg) 
 15. There is no need to go any further through the process i.e. submitting for certification. Note - tsting the skill using the service simulator can produce unexpected results so is not recommended
 
+## AWS CHARGES
+
+This skill has to transfer **a lot** of data around which Amazon charges for. The first 1 Gigabyte of data transfer per month is free after which Amazon will charge $0.09 per GB.
+The skill will  **try** to prevent you from going over 1000MB in a calender month (this is not a full 1GB but leaves some additonal headroom for for other skills) and will stop playing any further audio unless you specifcally ask the skill to increase the data limit by saying:-
+
+"Alexa, ask youtube to increase the data limit"
+
+You will then need to give the authorisation code which is:-
+
+    ```
+    ZERO ZERO ZERO DESTRUCT ZERO
+    ```
+
+This will then add an additonal 1000MB to the data limit. You can repeat this process to increase the data limit by 1000MB increments.
+
+The Now Playing Card in the Alexa app will tell you the data that you have used to date for the current month along with an estimated cost in US dollars if you have exceed the free usage.
 
 
+** NOTE - The app can only track it's own data usage. If you run other skills on AWS then these will also contribute towards usage limits. You can cheack your usage at any time by visiting:- **
 
+https://console.aws.amazon.com/billing/home?#/
+
+
+The data limit can be reset to it's default at any time with the command:-
+
+"Alexa, ask youtube to reset the data limit"
+
+This will prevent any further charges if you are already over the default limit
+
+
+You can increase the default data limit and AWS cost rates by setting the following environment variables:-
+
+|Key           |Description            |Possible Values| Default Value (if variable is not set)|
+|--------------| ----------------------|---------------|----------------------------|
+|CHARGE_PER_GIG|This is the AWS EC2 charge per GB for the first 10 TB / month data transfer out beyond the global free tier|Cost in dollars per GB|0.090| 
+|MAX_DATA|The size of the data limit in bytes|size in bytes|1048576000|
+ 
+ ### Credit where credit is due:
+ 
+ - Readme and code pieces from: https://github.com/Fenton-Fenton-Fenton/alexa-tube
+ - Amazon Alexa Skill Kit: https://developer.amazon.com/alexa-skills-kit 

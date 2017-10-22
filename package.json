@@ -1,7 +1,7 @@
 {
-  "name": "alexa-tube",
+  "name": "video-alexa-skill",
   "version": "1.0.0",
-  "description": "Unofficial Youtube Skill for Alexa",
+  "description": "Video Skill for Alexa",
   "main": "index.js",
   "dependencies": {
     "dropbox-v2-api": "^2.1.1",
@@ -19,7 +19,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Fenton-Fenton-Fenton/alexa-tube.git"
+    "url": "git+https://github.com/agonza1/video-alexa-skill.git"
   },
   "keywords": [],
   "author": "",
